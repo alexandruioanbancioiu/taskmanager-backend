@@ -7,21 +7,24 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Conexiune la baza de date – înlocuiește cu datele tale reale de la InfinityFree
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "taskmanager"
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASS || "",
+  database: process.env.DB_NAME || "taskmanager"
 });
 
+// Verificare conexiune
 db.connect((err) => {
   if (err) {
-    console.error("Eroare conexiune:", err);
+    console.error("Eroare conexiune DB:", err);
     return;
   }
-  console.log("Conectat la baza de date MySQL");
+  console.log("✅ Conectat la baza de date MySQL");
 });
 
+// Autentificare
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -40,6 +43,7 @@ app.post("/api/login", (req, res) => {
   });
 });
 
+// Adăugare task
 app.post("/api/add-task", (req, res) => {
   const { titlu, descriere, prioritate, termen, status } = req.body;
 
@@ -57,6 +61,7 @@ app.post("/api/add-task", (req, res) => {
   });
 });
 
+// Obținere taskuri active
 app.get("/api/tasks", (req, res) => {
   db.query("SELECT * FROM tasks WHERE status = 'activ' ORDER BY created_at DESC", (err, results) => {
     if (err) {
@@ -67,6 +72,7 @@ app.get("/api/tasks", (req, res) => {
   });
 });
 
+// Ștergere task
 app.delete("/api/delete-task/:id", (req, res) => {
   const taskId = req.params.id;
 
@@ -79,6 +85,8 @@ app.delete("/api/delete-task/:id", (req, res) => {
   });
 });
 
-app.listen(3001, () => {
-  console.log("Serverul rulează pe http://localhost:3001");
+// Pornire server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`🚀 Serverul rulează pe portul ${PORT}`);
 });
